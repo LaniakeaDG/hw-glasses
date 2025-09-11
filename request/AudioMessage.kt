@@ -22,5 +22,6 @@ data class AudioMessage(
     var msg_id: Int,
     val samples: FloatArray,
     val sample_rate: Int,
-    val action: Action? = null
+    val action: Action? = null,
+    var tts: Int = 1              // 新增字段：0 不 TTS，1 走 TTS（默认 1）
 )

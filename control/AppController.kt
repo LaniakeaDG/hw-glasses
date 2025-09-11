@@ -94,10 +94,12 @@ class AppController private constructor() {
      * B3: static
      * B4: 11100
      * B5: 00100
+     * B6: 11-0-
+     * B7: 01-0-
      * SYS: Glossaglass
      */
 
-    private var strategy = Strategy.B3
+    private var strategy = Strategy.B6
 
 
     private lateinit var outVector: IntArray
@@ -220,6 +222,15 @@ class AppController private constructor() {
             rtt = getAvgRTT(request.baseUrl)
         }
     }
+    /**
+     *  TTS 开关标志
+     * - 在卸载策略 B6 (11-0-) 和 B7 (01-0-) 下，强制关闭 TTS，返回 0
+     * - 其它策略默认开启 TTS，返回 1
+     *
+     * 作用：用于控制发往 10003 WebSocket 的 AudioMessage 中的 tts 字段
+     */
+    private fun currentTtsFlag(): Int =
+        if (strategy == Strategy.B6 || strategy == Strategy.B7) 0 else 1
 
 
     /**
@@ -255,6 +266,8 @@ class AppController private constructor() {
             Strategy.B3 -> intArrayOf(0, 1, 1, 0, 0)
             Strategy.B4 -> intArrayOf(1, 1, 1, 0, 0)
             Strategy.B5 -> intArrayOf(0, 0, 1, 0, 0)
+            Strategy.B6 -> intArrayOf(1, 1, 0, 0, 0) // 11-0-
+            Strategy.B7 -> intArrayOf(0, 1, 0, 0, 0) // 01-0-
             Strategy.SYS -> intArrayOf(1, 1, 1, 0, 0)
         }
 
@@ -940,7 +953,7 @@ class AppController private constructor() {
 
     // 翻译数据生成
     private fun generateTranslateData(textResult: String, msgId: Int): Flow<TextMessage> = flow {
-        emit(TextMessage(msgId, textResult, id=id))
+        emit(TextMessage(msgId, textResult, id=id, tts = currentTtsFlag()))
     }
     // 发送翻译数据
     private suspend fun sendTranslateData(session: DefaultClientWebSocketSession) {
@@ -1022,7 +1035,7 @@ class AppController private constructor() {
 
     // 语音数据生成
     private fun generateSoundData(id: String, msgId: Int, samples: FloatArray, sampleRate: Int, action: Action?): Flow<AudioMessage> = flow {
-        emit(AudioMessage(id, msgId, samples, sampleRate, action))
+        emit(AudioMessage(id, msgId, samples, sampleRate, action, tts=currentTtsFlag()))
     }
     // 发送语音数据 or Whisper数据
     private suspend fun sendSoundToTextData(session: DefaultClientWebSocketSession) {
@@ -1037,6 +1050,7 @@ class AppController private constructor() {
                     if (soundResult.isEmpty()) {
                         data.msg_id = -1
                     }
+
                     val json = Json.encodeToString(data)
                     Log.e("websocket", "发送中: $json")
                     session.send(json)
