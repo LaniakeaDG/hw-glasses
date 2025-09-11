@@ -99,7 +99,7 @@ class AppController private constructor() {
      * SYS: Glossaglass
      */
 
-    private var strategy = Strategy.B6
+    private var strategy = Strategy.B7
 
 
     private lateinit var outVector: IntArray
@@ -231,6 +231,9 @@ class AppController private constructor() {
      */
     private fun currentTtsFlag(): Int =
         if (strategy == Strategy.B6 || strategy == Strategy.B7) 0 else 1
+
+    private fun isGenderEnabled(): Boolean =
+        strategy != Strategy.B6 && strategy != Strategy.B7
 
 
     /**
@@ -782,14 +785,17 @@ class AppController private constructor() {
                     // 识别到none，此时可能正在录音，或还没开始录音
                     if (isRecording) {
 
-                        // 正在录音，识别男女
-                        val gender: String = unloadController.genderRecognition(genderDetector, eventBus, request, frame)
-                        paramGender = gender
-                        val sendGender = gender.replaceFirstChar { it.uppercaseChar() }
-                        request.testGender(id, sendGender)
-                        Log.e("controller", "正在录音，识别男女")
-                        Log.e("result", "识别男女结果$gender")
-
+                        if (isGenderEnabled()) {
+                            // 正在录音，识别男女
+                            val gender: String = unloadController.genderRecognition(genderDetector, eventBus, request, frame)
+                            paramGender = gender
+                            val sendGender = gender.replaceFirstChar { it.uppercaseChar() }
+                            request.testGender(id, sendGender)
+                            Log.e("controller", "正在录音，识别男女")
+                            Log.e("result", "识别男女结果$gender")
+                        } else {
+                            Log.e("controller", "策略为B6/B7，跳过性别识别（正在录音）")
+                        }
                     } else {
                         // 不需要识别男女
                         Log.e("controller", "还没开始录音，不需要识别男女")
@@ -812,13 +818,17 @@ class AppController private constructor() {
                         }
 
                     } else {
-                        // 开始录音，识别男女
-                        val gender: String = unloadController.genderRecognition(genderDetector, eventBus, request, frame)
-                        paramGender = gender
-                        val sendGender = gender.replaceFirstChar { it.uppercaseChar() }
-                        request.testGender(id, sendGender)
-                        Log.e("controller", "开始录音，识别男女")
-                        Log.e("result", "识别男女结果$gender")
+                        if (isGenderEnabled()) {
+                            // 开始录音，识别男女
+                            val gender: String = unloadController.genderRecognition(genderDetector, eventBus, request, frame)
+                            paramGender = gender
+                            val sendGender = gender.replaceFirstChar { it.uppercaseChar() }
+                            request.testGender(id, sendGender)
+                            Log.e("controller", "开始录音，识别男女")
+                            Log.e("result", "识别男女结果$gender")
+                        } else {
+                            Log.e("controller", "策略为B6/B7，跳过性别识别（开始录音）")
+                        }
                     }
                 }
             }
