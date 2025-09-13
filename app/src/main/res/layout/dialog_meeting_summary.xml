@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:padding="16dp">
+
+    <!-- 左半部分 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/left_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintWidth_percent="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- 标题：会议总结 -->
+        <TextView
+            android:id="@+id/textViewTitle_left"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Session Summary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 会议总结内容（带滚动条） -->
+        <ScrollView
+            android:id="@+id/scrollViewSummary_left"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintTop_toBottomOf="@id/textViewTitle_left"
+            app:layout_constraintBottom_toTopOf="@id/textViewHint_left"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/textViewSummary_left"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:background="@android:color/transparent"
+                android:padding="8dp"
+                android:lineSpacingExtra="4dp" />
+
+        </ScrollView>
+
+        <!-- 提示文字 -->
+        <TextView
+            android:id="@+id/textViewHint_left"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="After recognizing a fist gesture, the system will automatically end the current session summary and start a new conversation. The summary content will be permanently saved."
+            android:textSize="12sp"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:paddingBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 右半部分（镜像） -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/right_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintWidth_percent="0.5"
+        app:layout_constraintStart_toStartOf="@id/guideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- 标题：会议总结 -->
+        <TextView
+            android:id="@+id/textViewTitle_right"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Session Summary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 会议总结内容（带滚动条） -->
+        <ScrollView
+            android:id="@+id/scrollViewSummary_right"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintTop_toBottomOf="@id/textViewTitle_right"
+            app:layout_constraintBottom_toTopOf="@id/textViewHint_right"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/textViewSummary_right"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:background="@android:color/transparent"
+                android:padding="8dp"
+                android:lineSpacingExtra="4dp" />
+
+        </ScrollView>
+
+        <!-- 提示文字 -->
+        <TextView
+            android:id="@+id/textViewHint_right"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="After recognizing a fist gesture, the system will automatically end the current session summary and start a new conversation. The summary content will be permanently saved."
+            android:textSize="12sp"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:paddingBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 垂直分割线 -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

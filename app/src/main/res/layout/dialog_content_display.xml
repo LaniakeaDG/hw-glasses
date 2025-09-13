@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/dialog_background">
+
+    <!-- 关键词标题 -->
+    <TextView
+        android:id="@+id/tv_keyword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="keyword"
+        android:textSize="24sp"
+        android:textColor="#333333"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <!-- 图片和文本内容左右分布区域 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp">
+
+        <!-- 图片显示区域 -->
+        <ImageView
+            android:id="@+id/iv_content_image"
+            android:layout_width="0dp"
+            android:layout_height="150dp"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:background="#F5F5F5"
+            android:layout_marginEnd="10dp" />
+
+        <!-- 文本内容滚动区域 -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="150dp"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp">
+
+            <TextView
+                android:id="@+id/tv_content_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="content"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:lineSpacingExtra="4dp"
+                android:padding="8dp" />
+
+        </ScrollView>
+
+    </LinearLayout>
+
+    <!-- 翻译内容区域 -->
+    <TextView
+        android:id="@+id/tv_translation_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="translated content: "
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:lineSpacingExtra="4dp"
+        android:padding="12dp"
+        android:background="#F8F8F8"
+        android:minHeight="60dp"
+        android:gravity="center_vertical" />
+
+
+
+</LinearLayout>

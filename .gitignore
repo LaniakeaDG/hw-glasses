@@ -1,0 +1,6 @@
+.gradle
+.idea
+app/build
+gradle
+app/src/main/jniLibs
+app/src/main/assets
