@@ -1,6 +1,7 @@
 package com.k2fsa.sherpa.ncnn.algorithm
 
 import com.k2fsa.sherpa.ncnn.control.EventBus
+import kotlinx.coroutines.delay
 import kotlin.math.max
 
 /**
@@ -192,4 +193,57 @@ class Algorithm(private val event: EventBus) {
         )
     }
 
+
+    private var lowBandTime = 0
+    private var highBandTime = 0
+    private var switchTime = 4
+    private var canSwitch = true
+
+
+    fun strategy(bandwidth: Double): Int {
+        if (bandwidth == 0.0) {
+            // 带宽测量失败
+            return -1
+        }
+
+        // 计数
+        if (bandwidth < 2) {
+            lowBandTime += 1
+            highBandTime -= 1
+        } else {
+            lowBandTime -= 1
+            highBandTime += 1
+        }
+        // 控制在0~2
+        if (lowBandTime < 0) {
+            lowBandTime = 0
+        } else if (lowBandTime >= 2) {
+            lowBandTime = 2
+        }
+        if (highBandTime < 0) {
+            highBandTime = 0
+        } else if (highBandTime >= 2) {
+            highBandTime = 2
+        }
+
+        if (canSwitch) {
+            if (lowBandTime >= 2) {
+                // 切换B3
+                lowBandTime = 0
+                return 3
+            } else if (highBandTime >= 2 ) {
+                // 切换B2
+                highBandTime = 0
+                return 2
+            }
+        } else {
+            switchTime -= 1
+            if (switchTime == 0) {
+                switchTime = 4
+                canSwitch = true
+            }
+            return 0
+        }
+        return 0
+    }
 }

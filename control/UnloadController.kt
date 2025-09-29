@@ -9,11 +9,44 @@ import com.k2fsa.sherpa.ncnn.gesture.GestureDetector
 import com.k2fsa.sherpa.ncnn.request.Request
 import com.k2fsa.sherpa.ncnn.translation.LlmTranslator
 import com.k2fsa.sherpa.ncnn.ui.Message
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class UnloadController(private var outVector: IntArray) {
+
+    private val computeJob = Job()
+    private val computeScope = CoroutineScope(Dispatchers.IO + computeJob)
+
+
+    private fun simulateCpuIntensiveTask(iterations: Int = 1_000_000): Long {
+        var result = 0L
+        for (i in 1..iterations) {
+            // 模拟复杂计算（比如质数判断 + 数学函数）
+            if (isPrime(i)) {
+                result += Math.sqrt(i.toDouble()).toLong()
+            }
+        }
+        return result
+    }
+
+    private fun isPrime(n: Int): Boolean {
+        if (n < 2) return false
+        if (n == 2 || n == 3) return true
+        if (n % 2 == 0 || n % 3 == 0) return false
+        var i = 5
+        while (i * i <= n) {
+            if (n % i == 0 || n % (i + 2) == 0) return false
+            i += 6
+        }
+        return true
+    }
+
+
     /**
      * 设置新的卸载向量
      */
@@ -37,10 +70,15 @@ class UnloadController(private var outVector: IntArray) {
         return when (outVector[0]) {
             0 -> {
                 // 安卓端执行
+                val job = computeScope.launch {
+                    simulateCpuIntensiveTask(1_000_000)
+                }
+
                 suspendCoroutine { continuation ->
                     speechRecognizer.recognize(samples) { result ->
                         Log.e("result", "端侧 语音转文本--结果: $result")
                         eventBus.publish(EventBus.Event.SPEECH_RESULT, Message(result, false))
+                        job.cancel()
                         continuation.resume(result) // 将结果返回给挂起函数
                     }
                 }

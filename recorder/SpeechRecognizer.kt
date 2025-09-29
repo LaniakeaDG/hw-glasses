@@ -43,7 +43,7 @@ class SpeechRecognizer(
                 ?: throw IllegalArgumentException("Invalid model type: $modelType")
 
             val decoderConfig = getDecoderConfig(
-                method = "greedy_search",
+                method = "modified_beam_search",
                 numActivePaths = 4
             )
 
@@ -52,9 +52,9 @@ class SpeechRecognizer(
                 modelConfig = modelConfig,
                 decoderConfig = decoderConfig,
                 enableEndpoint = true,
-                rule1MinTrailingSilence = 2.0f,
-                rule2MinTrailingSilence = 0.8f,
-                rule3MinUtteranceLength = 20.0f,
+                rule1MinTrailingSilence = 1.6f,
+                rule2MinTrailingSilence = 0.6f,
+                rule3MinUtteranceLength = 16.0f,
             )
 
             model = SherpaNcnn(

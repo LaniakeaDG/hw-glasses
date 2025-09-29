@@ -235,6 +235,7 @@ class AppController private constructor() {
     private fun isGenderEnabled(): Boolean =
         strategy != Strategy.B6 && strategy != Strategy.B7
 
+    private var canSwitch = true
 
     /**
      * 初始化
@@ -517,7 +518,6 @@ class AppController private constructor() {
 
             recordScope.launch {
 
-
                 if (outVector[0] == -1)
                     return@launch
 
@@ -540,6 +540,7 @@ class AppController private constructor() {
 
                     // 判断是否为空语音
                     if (rms < silenceThreshold) {
+                        canSwitch = true
                         // 空语音
 //                        _soundResultFlow.emit(FloatArray(0)) // 发送空数组到流，同时指定id = -1（断句标识）
                         if (!flowEnd) {
@@ -549,6 +550,7 @@ class AppController private constructor() {
                             flowEnd = true
                         }
                     } else {
+                        canSwitch = false
                         // 非空语音
 //                        _soundResultFlow.emit(samples) // 发送 samples (FloatArray) 到流
                         flowEnd = false
@@ -619,6 +621,7 @@ class AppController private constructor() {
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val timeJob = Job()
     private val timeScope = CoroutineScope(Dispatchers.IO + timeJob)
+
     fun onResume() {
 
         checkInitialization()
@@ -643,30 +646,79 @@ class AppController private constructor() {
             }
         }
         coroutineScope.launch {
-            initSummaryWebsocket()
+            initSummaryWebSocket()
         }
         coroutineScope.launch {
             initStreamingMediaWebSocket()
         }
         coroutineScope.launch {
-            initVisualPromptWebsocket()
+            initVisualPromptWebSocket()
         }
 
 
-        // 卸载算法：每3分钟执行一次
+        // 卸载算法
         // TODO: 真正修改this@AppController.outVector
-        timeScope.launch {
 
-            while (true) {
+        if (strategy == Strategy.SYS) {
+            timeScope.launch {
 
-                if (this@AppController.battery == 0.0 || this@AppController.bandWidth == 0.0) {
-                    delay(1000)
-                } else {
-                    val result = algorithm.optimizeModulePlacement(this@AppController.bandWidth, this@AppController.battery)
-                    val path = result.path
-                    eventBus.publish(EventBus.Event.ALGORITHM, path.joinToString(", "))
-                    delay(2 * 60 * 1000)
+                while (true) {
+                    // 发送1Mb的包
+                    val bandwidth = request.testSpeed(1000 * 1000) / 1024 // Mb/s"
+                    Log.e("speed", "当前网络带宽约为 $bandwidth Mb/s")
+                    val result = algorithm.strategy(bandwidth)
+                    if (result == 2 && canSwitch) {
+                        outVector = intArrayOf(1, 1, 1, 1, 1)
+                    } else if (result == 3 && canSwitch) {
+                        outVector = intArrayOf(0, 1, 1, 0, 0)
+                    }
+
+                    delay(5 * 1000)
+
                 }
+            }
+        }
+
+
+        timeScope.launch {
+            // 断线自动重连
+            while (true) {
+                if (::translateWebSocketSession.isInitialized && !isWebSocketConnected(translateWebSocketSession)) {
+                    Log.e("websocket", "translateWebSocketSession链接断开，重连中")
+                    translateWebSocketSession.close()
+                    coroutineScope.launch {
+                        initTranslateWebSocket()
+                    }
+                }
+                if (::soundToTextWebSocketSession.isInitialized && !isWebSocketConnected(soundToTextWebSocketSession)) {
+                    Log.e("websocket", "soundToTextWebSocketSession链接断开，重连中")
+                    soundToTextWebSocketSession.close()
+                    coroutineScope.launch {
+                        initSoundToTextWebSocket()
+                    }
+                }
+                if (::streamingMediaWebSocketSession.isInitialized && !isWebSocketConnected(streamingMediaWebSocketSession)) {
+                    Log.e("websocket", "streamingMediaWebSocketSession链接断开，重连中")
+                    streamingMediaWebSocketSession.close()
+                    coroutineScope.launch {
+                        initStreamingMediaWebSocket()
+                    }
+                }
+                if (::summaryWebSocketSession.isInitialized && !isWebSocketConnected(summaryWebSocketSession)) {
+                    Log.e("websocket", "summaryWebSocketSession链接断开，重连中")
+                    summaryWebSocketSession.close()
+                    coroutineScope.launch {
+                        initSummaryWebSocket()
+                    }
+                }
+                if (::visualPromptWebSocketSession.isInitialized && !isWebSocketConnected(visualPromptWebSocketSession)) {
+                    Log.e("websocket", "visualPromptWebSocketSession链接断开，重连中")
+                    visualPromptWebSocketSession.close()
+                    coroutineScope.launch {
+                        initVisualPromptWebSocket()
+                    }
+                }
+                delay(5 * 1000)
             }
         }
 
@@ -892,7 +944,6 @@ class AppController private constructor() {
         }
     }
 
-
     private suspend fun initStreamingMediaWebSocket() {
         try {
             val port = 10009
@@ -916,7 +967,7 @@ class AppController private constructor() {
         }
     }
 
-    private suspend fun initSummaryWebsocket() {
+    private suspend fun initSummaryWebSocket() {
         try {
             val port = 8764
             webSocketClient.webSocket("ws://${request.baseUrl}:$port") {
@@ -938,7 +989,7 @@ class AppController private constructor() {
         }
     }
 
-    private suspend fun initVisualPromptWebsocket() {
+    private suspend fun initVisualPromptWebSocket() {
         try {
             val port = 8767
             webSocketClient.webSocket("ws://${request.baseUrl}:$port") {
@@ -960,6 +1011,51 @@ class AppController private constructor() {
         }
     }
 
+    // 关闭连接
+    private suspend fun closeTranslateWebSocket() {
+        try {
+            translateWebSocketSession.close(CloseReason(CloseReason.Codes.NORMAL, "正常关闭"))
+        } catch (e: Exception) {
+            Log.e("websocket", "关闭连接时出现异常: ${e.message}")
+        }
+    }
+
+    private suspend fun closeSoundToTextWebSocket() {
+        try {
+            soundToTextWebSocketSession.close(CloseReason(CloseReason.Codes.NORMAL, "正常关闭"))
+        } catch (e: Exception) {
+            Log.e("websocket", "关闭连接时出现异常: ${e.message}")
+        }
+    }
+
+    private suspend fun closeStreamingMediaWebSocket() {
+        try {
+            streamingMediaWebSocketSession.close(CloseReason(CloseReason.Codes.NORMAL, "正常关闭"))
+        } catch (e: Exception) {
+            Log.e("websocket", "关闭连接时出现异常: ${e.message}")
+        }
+    }
+
+    private suspend fun closeSummaryWebSocket() {
+        try {
+            summaryWebSocketSession.close(CloseReason(CloseReason.Codes.NORMAL, "正常关闭"))
+        } catch (e: Exception) {
+            Log.e("websocket", "关闭连接时出现异常: ${e.message}")
+        }
+    }
+
+    private suspend fun closeVisualPromptWebSocket() {
+        try {
+            visualPromptWebSocketSession.close(CloseReason(CloseReason.Codes.NORMAL, "正常关闭"))
+        } catch (e: Exception) {
+            Log.e("websocket", "关闭连接时出现异常: ${e.message}")
+        }
+    }
+
+    // 检查连接状态
+    private fun isWebSocketConnected(websocket: DefaultClientWebSocketSession): Boolean {
+        return websocket.isActive
+    }
 
 
     // 翻译数据生成
@@ -1011,9 +1107,7 @@ class AppController private constructor() {
                                 isStart = false
                                 if (outVector[0] == 0) { // 边测翻译
                                     val firstToken = System.currentTimeMillis() - flowStartTime1
-
                                     if (data.process_time != null) {
-                                        Log.e("test", "${data.process_time}")
                                         Log.e("latency", "路径2 首token时延: ${sttProcessingTime + data.process_time + rtt} ms")
                                         eventBus.publish(EventBus.Event.FIRST_TOKEN, "${sttProcessingTime + data.process_time + rtt}")
                                     }
@@ -1061,7 +1155,6 @@ class AppController private constructor() {
                     if (soundResult.isEmpty()) {
                         data.msg_id = -1
                     }
-
                     val json = Json.encodeToString(data)
                     Log.e("websocket", "发送中: $json")
                     session.send(json)
