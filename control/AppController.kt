@@ -99,7 +99,7 @@ class AppController private constructor() {
      * SYS: Glossaglass
      */
 
-    private var strategy = Strategy.B7
+    private var strategy = Strategy.B3
 
 
     private lateinit var outVector: IntArray
@@ -440,7 +440,8 @@ class AppController private constructor() {
             val power = batteryStats.power.toFloat()
             val current = batteryStats.current.toFloat()
             val voltage = batteryStats.voltage.toFloat()
-            fileLogger.logPowerUsage(current, voltage, power, scenario.toString(), strategy.toString())
+            val soc = batteryStats.soc
+            fileLogger.logPowerUsage(current, voltage, power, soc, scenario.toString(), strategy.toString())
 
             powerCallback?.invoke(String.format(Locale.US, "%.3f", power))
         }

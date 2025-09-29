@@ -261,12 +261,13 @@ class StatusMonitor(private val mainScope: CoroutineScope, private val context: 
             val voltage = voltageMilli / 1000.0 // 转换为伏特
             val current = currentNow / 1_000_000.0 // 转换为安培
             val power = voltage * current // 单位：瓦特
+            val soc   = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) //%
 
 //            Log.d("usage", "当前设备电量: ${currentLevel}%")
 //            Log.d("usage",
 //                "能耗统计 - 当前电流: ${current}A | 当前电压: ${voltage}V | 当前功率: ${power}W")
 
-            val batteryStats = BatteryStats(current, voltage, power)
+            val batteryStats = BatteryStats(current, voltage, power, soc)
             // 发布电量
 //            event.publish(EventBus.Event.BATTERY, "$currentLevel")
             // 发布功率

@@ -72,9 +72,9 @@ class FileLogger private constructor(private val context: Context) {
     /**
      * 记录能耗数据到CSV
      */
-    fun logPowerUsage(current: Float, voltage: Float, power: Float, scenario: String = "default", strategy: String = "default") {
+    fun logPowerUsage(current: Float, voltage: Float, power: Float, soc:Int, scenario: String = "default", strategy: String = "default") {
         val timestamp = getCurrentTimestamp()
-        val csvData = "$timestamp,$scenario,$strategy,$current,$voltage,$power"
+        val csvData = "$timestamp,$scenario,$strategy,$current,$voltage,$power,$soc"
         writeCsvToFile("power_usage.csv", POWER_CSV_HEADER, csvData, "power")
     }
 
